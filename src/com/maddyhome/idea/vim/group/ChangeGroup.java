@@ -703,7 +703,7 @@ public class ChangeGroup {
     }
     if (offset != -1) {
       boolean res = deleteText(editor, new TextRange(start, offset), SelectionType.LINE_WISE);
-      if (res && editor.getCaretModel().getOffset() >= EditorHelper.getFileSize(editor) &&
+      if (res && editor.getCaretModel().getOffset() >= EditorHelper.getFileSize(editor, true) &&
           editor.getCaretModel().getOffset() != 0) {
         MotionGroup.moveCaret(editor, VimPlugin.getMotion().moveCaretToLineStartSkipLeadingOffset(editor, -1));
       }
@@ -1032,7 +1032,15 @@ public class ChangeGroup {
    */
   public boolean changeLine(@NotNull Editor editor, @NotNull DataContext context, int count) {
     final LogicalPosition pos = editor.offsetToLogicalPosition(editor.getCaretModel().getOffset());
-    final boolean insertBelow = pos.line + count >= EditorHelper.getLineCount(editor);
+    int linesInFileCount = EditorHelper.getLineCount(editor);
+
+    if(linesInFileCount == 0) {
+      insertNewLineAbove(editor, context);
+      return true;
+    }
+
+    final boolean insertBelow = pos.line + count >= linesInFileCount &&
+                                linesInFileCount > 1;
 
     boolean res = deleteLine(editor, count);
     if (res) {

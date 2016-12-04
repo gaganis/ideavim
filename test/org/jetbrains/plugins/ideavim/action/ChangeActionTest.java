@@ -1,6 +1,7 @@
 package org.jetbrains.plugins.ideavim.action;
 
 import com.maddyhome.idea.vim.VimPlugin;
+import com.maddyhome.idea.vim.command.CommandState;
 import org.jetbrains.plugins.ideavim.VimTestCase;
 
 import static com.maddyhome.idea.vim.helper.StringHelper.parseKeys;
@@ -573,7 +574,44 @@ public class ChangeActionTest extends VimTestCase {
                           "and some text after\n");
   }
 
+  // VIM-1216 |f| |.| |;|
   public void testRepeatChangeWordDoesNotBreakNextRepeatFind() {
     doTest(parseKeys("fXcfYPATATA<Esc>fX.;."), "<caret>aaaaXBBBBYaaaaaaaXBBBBYaaaaaaXBBBBYaaaaaaaa\n", "aaaaPATATAaaaaaaaPATATAaaaaaaPATATAaaaaaaaa\n");
+  }
+
+  // VIM-636 |S| |cc|
+  public void testLineSubstitutionEmptyFile() {
+    doTest(parseKeys("S"),
+           "",
+           "\n");
+    assertOffset(0);
+    assertMode(CommandState.Mode.INSERT);
+  }
+
+  // VIM-636 |S| |cc|
+  public void testLineSubstitutionOneLineBlankFile() {
+    doTest(parseKeys("S"),
+           "\n",
+           "\n");
+    assertOffset(0);
+    assertMode(CommandState.Mode.INSERT);
+  }
+
+  // VIM-636 |S| |cc|
+  public void testLineSubstitutionThreeLineBlankFile() {
+    doTest(parseKeys("S"),
+           "\n<caret>\n\n",
+           "\n<caret>\n\n");
+    assertOffset(1);
+    assertMode(CommandState.Mode.INSERT);
+  }
+
+  // VIM-636 |S| |cc|
+  public void testLineSubstitutionFourLineBlankFile() {
+    doTest(parseKeys("S"),
+           "\n<caret>\n\n\n",
+           "\n<caret>\n\n\n");
+    assertOffset(1);
+    assertMode(CommandState.Mode.INSERT);
   }
 }
